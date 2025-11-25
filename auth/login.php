@@ -7,17 +7,21 @@
 // input by the user are available in $_POST PHP variable 
 
     
-
+// We need this if block to confirm the user has submitted 
+// the login form and then we will start to fetch 
+// the data from login form
 if($_SERVER["REQUEST_METHOD"] == "POST") {
   
     $username = $_POST["username"]; // username is the name of input field in html name must match
-    $password = $_POST["password"];
+    $password = $_POST["password"]; // name defined in password field
 }
 
+//STEP 3: Check whether the username and password are correct or not
+    //1 . Import $conn 
+    //2. Query having this username and password 
+    //3. select username, password from user where username=username and pass=pass;
 
-
-
-// Check whether the username and password are correct or not
+    
 // if incorrect reply no username or password match 
 // if user provide the correct username and password
 // authenticate it and redirect to dashboard

@@ -1,0 +1,14 @@
+create table users (
+    
+    id int not null PRIMARY key AUTO_INCREMENT,
+    username varchar(255) not null unique, 
+    password varchar(255) not null,
+    is_admin boolean DEFAULT 0,
+    is_active boolean default 1
+    
+    
+    );
+
+
+insert into users(username, password) values("ram", "ram@123");
+
