@@ -10,6 +10,10 @@ session_start();
 
 $isUserLoggedIn = isset($_SESSION["username"]);
 
+// Admin user ho vane chai true returen garcha else false
+$isAdmin = isset($_SESSION['is_admin']);
+
+
 // if user logged in chaina vane 
 // Login page ma pathaidene
 // ! le chai opposite value dincha true cha vane false and false cha vane true

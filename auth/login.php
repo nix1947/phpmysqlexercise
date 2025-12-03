@@ -40,7 +40,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     // If form fields are not empty start to fetch from db and compare database value 
     // and form value
     
-    $stmt = $conn->prepare("SELECT username, password FROM users WHERE username = ? AND password = ?");
+    $stmt = $conn->prepare("SELECT username, password, is_admin FROM users WHERE username = ? AND password = ?");
     $stmt->bind_param("ss", $form_username, $form_password);
 
     $stmt->execute();
@@ -65,12 +65,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if($form_username==$db_username && $form_password  == $db_password) {
             // Do Login 
+            // Database bata username ra password match vayapchi
+            // $_SESSION ma username, userko id ra user normal ho ke admin ho 
+            // tyo value pani set garu 
+            // so that we can apply condition in pages.
             
             $_SESSION["username"] = $db_username;
             $_SESSION["id"] = $record["id"];
+            $_SESSION["is_admin"] =  $record["is_admin"];
+
+
 
             // session is seted now send this user to dashboard
-            header("Location: ../dashboard/dashboard.php");
+           header("Location: ../dashboard/dashboard.php");
 
             
 
