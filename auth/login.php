@@ -4,7 +4,6 @@
 
  session_start();
 
- echo var_dump($_SESSION);
 
  // if user is already logged in redirect him to dashboard
  if(isset($_SESSION["username"])) {
