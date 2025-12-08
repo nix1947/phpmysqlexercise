@@ -18,6 +18,7 @@ include('../helper/check_login.php');
 // available huncha in all pages using $_SESSION SUPER GLOBAL PHP VARIABLE 
 
 $username = $_SESSION["username"];
+
 $isAdmin = $_SESSION["is_admin"];
 
 

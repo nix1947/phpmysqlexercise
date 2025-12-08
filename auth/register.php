@@ -3,92 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register your account here</title>
+    <title>User registraion Form</title>
 </head>
 <body>
 
-<?php
-// Only run this php block if and only the form has been submitted by user. 
+<!-- Registration form --> 
+ <!-- 
+    STEP 1: Design registration form
 
-if($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Form has been submitted
-    // Start to grab the fields
+    STEP 2: Write PHP block to get and process form data
+            a. Confirm all fields are not empty
+            b. password and confirm password must match
 
-    $fullname = $_POST["fullname"]; // fullname is a name defined in html tag
-    $email = $_POST["email"]; 
-    $password = $_POST["password"];
-    $password1 = $_POST["password1"];
-    $username = $_POST["username"];
+    STEP 3: if all form data and password are okay import db connection 
+                and register user in database
 
-    // none of the field should be empty if empty reply user 
-    if(empty($fullname) || empty($username) || empty($email) || empty($password) || empty($password1)) {
-        echo "<p>Full name, username, email, password and password1 must not be blank";
+
+-->
+
+<?php 
+    // Grab the form data after form is submitted
+    // how to check whether the form is submitted or not 
+    if($_SERVER["REQUEST_METHOD"] == "POST") {
+
+        // Grab all fields and check for validation
+        $fullname = $_POST["fullname"];
+        $user_name = $_POST["username"];
+        $email = $_POST["email"];
+        $userPassword = $_POST["password"];
+        $confirmPassword = $_POST["confirmPassword"];
+
+        // echo "Your submitted <br/> $fullname, $username, $email, $password, $confirmPassword";
+
+        if(empty($fullname) || empty($user_name) || empty($email) || empty($userPassword) || empty($confirmPassword)) {
+            echo "<i>Please fill out all the form fields</i><br/></br>";
+        }
+
+        // Validate password and confirm password
+
+       if($userPassword != $confirmPassword) {
+            echo "<em>Password does not match please confirm your password </em><br/>";
+       }
+
+       // STEP 3: Import db connection an write a query to register this 
+       // user in database of table users 
+       // import db connnection
+       // db connection is inside config/config_db.php 
+       include('../config/db_config.php');
+
+       // Lets do echo var_dump to check whether the connection variable is imported
+       // or not
+
+        //    echo var_dump($conn);
+
+        // Write a sql query to register the user using values which we get from register form.
+
+       $registerUserSQL = "insert into users(fullname, username, email, password) values(?, ?, ?, ?)";
+
+       // To run his query you must have the columns fullname, username, email, and password
+       // in classicmodels user table
+       // if columns does not exist add 
+
+       // to add use sql alter table command
+       
+       // alter table users add column fullname varchar(255) not null 
+       // alter table users add column username varchar(25) not null unique
+       // alter table users add column email varchar(25) not null unique
+       // alter table users add column password varchar(255) not null
+       
+       $preparedStatement =  $conn->prepare($registerUserSQL);
+
+       // bind form values in SQL prepare statement to populate ?
+       //s: string: first s: fullname, second s: username and so on ....
+       $preparedStatement->bind_param('ssss',$fullname, $user_name, $email, $confirmPassword);
+
+       // After binding call execute method to run in dbms from php 
+      $isSuccess =  $preparedStatement->execute();
+
+      if($isSuccess == TRUE) {
+
+        echo "You account has been created  <br/>
+                <a href='./login.php'>Login</a>        
+        ";
+
+      }
+
+
+
     }
-
-    // password and password1 must match if not reply user with password not match
-    if($password != $password1) {
-        echo "<p>Password not matched</p>";
-    }
-
-    // Now all good 
-    // Let's insert the user into database to create a new user
-    $sql =  "insert into users(username, password, fullname, email) values (?, ?, ?, ?)";
-
-    // TO populae ?, ? with form value in $sql variable we need to use a prepare statement 
-    // provided by database.  So as to prepare a prepare statement
-    //  import $conn variable defined in config/db_config.php 
-
-    include('../config/db_config.php');
-    // if the import of db_config.php is successfull we must have the availability of 
-    // $conn variable let's confirm it using echo var_dump($conn); 
-    // echo var_dump($conn);
-
-    $preparedStatement = $conn->prepare($sql);
-
-    // After prepare bind the data received from register form to sql statement 
-    // to make ready in the database 
-    // username, password, fullname, email all are string so bind with `s`
-    $preparedStatement->bind_param('ssss',$username, $password, $fullname, $email);
-
-    // Now SQL is fully prepared now run it from php to insert the data 
-    // received from Register form 
-    $success = $preparedStatement->execute();
-
-    if($success == TRUE) {
-        echo "<p>
-        Your account has 
-        been created successfully please 
-        <a href='../auth/login.php'> Login  </a>
-        </p>";
-    }
-
-
-}
 
 ?>
 
-<h1>Create a new account </h1>
-<p>It’s quick and easy.   </p>
 
 
-<form method="POST" action="./register.php"> 
+<form method='POST' action='./register.php'> 
     <fieldset>
-    
-    <legend> User registraion Form </legend>
-    Full Name: <input type="text" name="fullname" />
-    <br/>
-    Username: <input type="text" name="username" />
-    <br/>
-    Your Email:  <input type="email" name="email" />
-    <br/>
-   Password: <input type="password" name="password" />
-    <br/>
-   Confirm Password: <input type="password" name="password1" />
-    </br>
-    <input type="submit" value="Register" />
+            <legend>User Registration Form </legend>
 
-</fielset>
+    FullName: <input type='text' name='fullname' /> <br/>
+    username: <input type='text' name='username' /> <br/>
+    Email:    <input type='email' name='email' /> <br/>
+    password: <input type='password' name='password' /> <br/>
+    confirm Password: <input type='password' name='confirmPassword' /> <br/>
+    <input type='submit' value='Register' />
+</fieldset>
+
 </form>
 
+    
 </body>
 </html>
