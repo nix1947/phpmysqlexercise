@@ -24,6 +24,13 @@
 <?php 
     // Grab the form data after form is submitted
     // how to check whether the form is submitted or not 
+
+    // Variable to store form data
+    $fullname = "";
+    $user_name = "";
+    $email = "";
+    $userPassword="";
+    $confirmPassword = "";
     if($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Grab all fields and check for validation
@@ -100,11 +107,11 @@
     <fieldset>
             <legend>User Registration Form </legend>
 
-    FullName: <input type='text' name='fullname' /> <br/>
-    username: <input type='text' name='username' /> <br/>
-    Email:    <input type='email' name='email' /> <br/>
-    password: <input type='password' name='password' /> <br/>
-    confirm Password: <input type='password' name='confirmPassword' /> <br/>
+    FullName: <input type='text' name='fullname' value="<?php echo $fullname; ?>" /> <br/>
+    username: <input type='text' name='username' value="<?php echo $user_name; ?>"   /> <br/>
+    Email:    <input type='email' name='email' value="<?php echo $email; ?>" /> <br/>
+    password: <input type='password' name='password' value="<?php echo $confirmPassword; ?>" /> <br/>
+    confirm Password: <input type='password' name='confirmPassword' value="<?php echo $confirmPassword; ?>" /> <br/>
     <input type='submit' value='Register' />
 </fieldset>
 
