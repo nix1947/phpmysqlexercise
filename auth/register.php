@@ -69,6 +69,13 @@ if(isset($_SESSION["username"])) {
             echo "<em>Password does not match please confirm your password </em><br/>";
        }
 
+       // If everything is okay let us hash our password to make the password
+       // safe in our database while storinig
+       
+       $hashPassword = password_hash($confirmPassword, PASSWORD_DEFAULT);
+       
+       echo $hashPassword;
+
        // STEP 3: Import db connection an write a query to register this 
        // user in database of table users 
        // import db connnection
@@ -99,7 +106,7 @@ if(isset($_SESSION["username"])) {
 
        // bind form values in SQL prepare statement to populate ?
        //s: string: first s: fullname, second s: username and so on ....
-       $preparedStatement->bind_param('ssss',$fullname, $user_name, $email, $confirmPassword);
+       $preparedStatement->bind_param('ssss',$fullname, $user_name, $email, $hashPassword);
 
        // After binding call execute method to run in dbms from php 
       $isSuccess =  $preparedStatement->execute();

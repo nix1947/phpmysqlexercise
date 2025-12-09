@@ -40,14 +40,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     // If form fields are not empty start to fetch from db and compare database value 
     // and form value
     
-    $stmt = $conn->prepare("SELECT username, password, is_admin FROM users WHERE username = ? AND password = ?");
-    $stmt->bind_param("ss", $form_username, $form_password);
+    $stmt = $conn->prepare("SELECT username, password, is_admin FROM users WHERE username = ?");
+    $stmt->bind_param("s", $form_username);
 
     $stmt->execute();
 
 
 
     $result = $stmt->get_result();
+
+    echo var_dump($result->num_rows);
 
 
     if($result->num_rows === 1) {
@@ -61,9 +63,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         $db_username = $record["username"];
         $db_password = $record["password"];
 
+        echo $db_password;
+        echo $db_username;
+
+
+        // unhash the password retrive from database
+        // so that we can compare the user input password from login 
+        // form to unhashed password from database
+
+        // if password match it will return the verified hash password
+        
+        $hashedPassword = password_verify($form_password, $db_password);
+
        
 
-        if($form_username==$db_username && $form_password  == $db_password) {
+        if($form_username==$db_username && $db_password==$hashedPassword) {
             // Do Login 
             // Database bata username ra password match vayapchi
             // $_SESSION ma username, userko id ra user normal ho ke admin ho 
@@ -82,7 +96,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             
 
         } else {
-            die("Your username or password is mismached");
+        //     die("Your username or password is mismached");
         }
 
 
@@ -150,7 +164,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
 <div id="login-form">
     <form method='POST' action="./login.php">
         Username: <input type="text" name="username" /> <br />
-        Password: <input type="text" name="password" /> <br /> <br />
+        Password: <input type="password" required name="password" /> <br /> <br />
         <input type="submit" value="Login" />
 
     </form>
