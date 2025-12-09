@@ -22,6 +22,23 @@
 -->
 
 <?php 
+
+// IF User is already logged in 
+// DO not render this page or run this page
+// Redirect that user to dashboard
+// TO access session variable we must need to start a session
+
+session_start();
+
+if(isset($_SESSION["username"])) {
+    header("Location: ../dashboard/dashboard.php");
+    exit();
+}
+
+?>
+
+
+<?php 
     // Grab the form data after form is submitted
     // how to check whether the form is submitted or not 
 
