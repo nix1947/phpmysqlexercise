@@ -1,172 +1,121 @@
-<?php 
- // Start session to store logged in user information 
- // so that the user information is available accross the pages 
+<?php
+session_start();
 
- session_start();
-
-
- // if user is already logged in redirect him to dashboard
- if(isset($_SESSION["username"])) {
-
-            header("Location: ../dashboard/dashboard.php");
- }
-
-
- //1 . Import $conn 
-include("../config/db_config.php");
-    
-// echo var_dump($conn); // just checking $conn availe or not 
-
-// Step 1: Provide login form (completed)
-
-//STEP: 2 Read all the data provided from login form and validate
-// form has used POST method, on form submission all the data 
-// input by the user are available in $_POST PHP variable 
-
-    
-// We need this if block to confirm the user has submitted 
-// the login form and then we will start to fetch 
-// the data from login form
-if($_SERVER["REQUEST_METHOD"] == "POST") {
-  
-    $form_username = $_POST["username"]; // username is the name of input field in html name must match
-    $form_password = $_POST["password"]; // name defined in password field
-
-    if(empty($form_username) || empty($form_password)) {
-        die("Please provide username or password");
-    }
-
-   
-    // If form fields are not empty start to fetch from db and compare database value 
-    // and form value
-    
-    $stmt = $conn->prepare("SELECT username, password, is_admin FROM users WHERE username = ?");
-    $stmt->bind_param("s", $form_username);
-
-    $stmt->execute();
-
-
-
-    $result = $stmt->get_result();
-
-    echo var_dump($result->num_rows);
-
-
-    if($result->num_rows === 1) {
-        // username and password exist 
-        // login user and reirect it ddashboard 
-
-        echo $result->num_rows;
-
-        $record = $result->fetch_assoc(); // pull record from db into $record variable 
-        
-        $db_username = $record["username"];
-        $db_password = $record["password"];
-
-        echo $db_password;
-        echo $db_username;
-
-
-        // unhash the password retrive from database
-        // so that we can compare the user input password from login 
-        // form to unhashed password from database
-
-        // if password match it will return the verified hash password
-        
-        $hashedPassword = password_verify($form_password, $db_password);
-
-       
-
-        if($form_username==$db_username && $db_password==$hashedPassword) {
-            // Do Login 
-            // Database bata username ra password match vayapchi
-            // $_SESSION ma username, userko id ra user normal ho ke admin ho 
-            // tyo value pani set garu 
-            // so that we can apply condition in pages.
-            
-            $_SESSION["username"] = $db_username;
-            $_SESSION["id"] = $record["id"];
-            $_SESSION["is_admin"] =  $record["is_admin"];
-
-
-
-            // session is seted now send this user to dashboard
-           header("Location: ../dashboard/dashboard.php");
-
-            
-
-        } else {
-        //     die("Your username or password is mismached");
-        }
-
-
-        
-    }
-
-
-
-
-
-
-
-
-   
-    // if ($result->num_rows === 1) {
-    // $row = $result->fetch_assoc();
-
-    // // Verify hashed password
-    // if (password_verify($password, $row['password'])) {
-
-    //     // Set session variables
-    //     $_SESSION["user_id"] = $row["id"];
-    //     $_SESSION["username"] = $row["username"];
-    //     $_SESSION["logged_in"] = true;
-
-    //     echo "Login successful!";
-    //     header("Location: dashboard.php");
-    //     exit();
-    // } else {
-    //     echo "Invalid password";
-    // }
-
+// If already logged in, redirect
+if (isset($_SESSION["username"])) {
+    header("Location: ../dashboard/dashboard.php");
+    exit();
 }
 
-//STEP 3: Check whether the username and password are correct or not
-   
+// DB connection
+include("../config/db_config.php");
 
-    //2. Query having this username and password 
-    // $query_to_check_username_and_password = "select username, password from users where username=? and password=?";
-    // $prepareQuery = $conn->prepare($query_to_check_username_and_password);
-    // $prepareQuery->bind_param('ss', $username, $password);
-    // $prepareQuery->execute();
+// Handle form POST
+$error = "";
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+    $form_username = trim($_POST["username"]);
+    $form_password = trim($_POST["password"]);
 
-    // if query success there will be one or more rows let's check using if
-    // condition, $result object has num_rows attr which will have value of count 
-    // of total users in user table 
-   
+    if (empty($form_username) || empty($form_password)) {
+        $error = "Please provide both username and password.";
+    } else {
+        // Fetch user record
+        $stmt = $conn->prepare("SELECT id, username, password, is_admin FROM users WHERE username = ?");
+        $stmt->bind_param("s", $form_username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    //3. select username, password from user where username=username and pass=pass;
-    
+        if ($result->num_rows === 1) {
+            $record = $result->fetch_assoc();
 
-// if incorrect reply no username or password match 
-// if user provide the correct username and password
-// authenticate it and redirect to dashboard
+            // Verify hashed password
+            if (password_verify($form_password, $record["password"])) {
 
+                // Set session values
+                $_SESSION["username"]  = $record["username"];
+                $_SESSION["id"]        = $record["id"];
+                $_SESSION["is_admin"]  = $record["is_admin"];
 
-
+                header("Location: ../dashboard/dashboard.php");
+                exit();
+            } else {
+                $error = "Incorrect username or password.";
+            }
+        } else {
+            $error = "Incorrect username or password.";
+        }
+    }
+}
 ?>
 
 
 
-<h1> Login </h1>
-<div id="login-form">
-    <form method='POST' action="./login.php">
-        Username: <input type="text" name="username" /> <br />
-        Password: <input type="password" required name="password" /> <br /> <br />
-        <input type="submit" value="Login" />
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
 
-    </form>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
+<body class="bg-light d-flex justify-content-center align-items-center" style="height: 100vh;">
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <h3 class="text-center mb-3">Login</h3>
+
+                    <?php if (!empty($error)) : ?>
+                        <div class="alert alert-danger py-2"><?= $error ?></div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="./login.php">
+
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                name="username" 
+                                placeholder="Enter your username"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input 
+                                id="userInputPassword" 
+                                type="password" 
+                                name="password" 
+                                class="form-control" 
+                                placeholder="Enter your password"
+                                required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-2">
+                            Login
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<script>
+var passwordElement = document.getElementById("userInputPassword");
+console.log(passwordElement);
+</script>
+
+</body>
+</html>

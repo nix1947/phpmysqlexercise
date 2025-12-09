@@ -1,146 +1,151 @@
+<?php
+session_start();
+
+// If logged in, redirect
+if (isset($_SESSION["username"])) {
+    header("Location: ../dashboard/dashboard.php");
+    exit();
+}
+
+include('../config/db_config.php');
+
+$fullname = $username = $email = "";
+$userPassword = $confirmPassword = "";
+$error = "";
+$success = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $fullname         = trim($_POST["fullname"]);
+    $username         = trim($_POST["username"]);
+    $email            = trim($_POST["email"]);
+    $userPassword     = trim($_POST["password"]);
+    $confirmPassword  = trim($_POST["confirmPassword"]);
+
+    // Validate empty
+    if (empty($fullname) || empty($username) || empty($email) || empty($userPassword) || empty($confirmPassword)) {
+        $error = "Please fill out all fields.";
+    }
+    // Validate password match
+    elseif ($userPassword !== $confirmPassword) {
+        $error = "Password and Confirm Password do not match.";
+    }
+    else {
+        // Hash password
+        $hashedPassword = password_hash($userPassword, PASSWORD_DEFAULT);
+
+        // Prepare SQL
+        $sql = "INSERT INTO users (fullname, username, email, password) VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssss", $fullname, $username, $email, $hashedPassword);
+
+        if ($stmt->execute()) {
+            $success = "Your account has been created successfully!";
+            $fullname = $username = $email = "";
+        } else {
+            $error = "Registration failed. Username or Email might already exist.";
+        }
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User registraion Form</title>
+    <title>User Registration</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
 
-<!-- Registration form --> 
- <!-- 
-    STEP 1: Design registration form
+<body class="bg-light d-flex justify-content-center align-items-center" style="height: 100vh;">
 
-    STEP 2: Write PHP block to get and process form data
-            a. Confirm all fields are not empty
-            b. password and confirm password must match
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
 
-    STEP 3: if all form data and password are okay import db connection 
-                and register user in database
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
 
+                    <h3 class="text-center mb-3">Create an Account</h3>
 
--->
+                    <!-- Error Message -->
+                    <?php if (!empty($error)): ?>
+                        <div class="alert alert-danger"><?= $error ?></div>
+                    <?php endif; ?>
 
-<?php 
+                    <!-- Success Message -->
+                    <?php if (!empty($success)): ?>
+                        <div class="alert alert-success">
+                            <?= $success ?> <br>
+                            <a href="./login.php" class="fw-bold">Login here</a>
+                        </div>
+                    <?php endif; ?>
 
-// IF User is already logged in 
-// DO not render this page or run this page
-// Redirect that user to dashboard
-// TO access session variable we must need to start a session
+                    <form method="POST" action="./register.php">
 
-session_start();
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" 
+                                   name="fullname" 
+                                   class="form-control"
+                                   value="<?= htmlspecialchars($fullname) ?>"
+                                   required>
+                        </div>
 
-if(isset($_SESSION["username"])) {
-    header("Location: ../dashboard/dashboard.php");
-    exit();
-}
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" 
+                                   name="username" 
+                                   class="form-control" 
+                                   value="<?= htmlspecialchars($username) ?>"
+                                   required>
+                        </div>
 
-?>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" 
+                                   name="email" 
+                                   class="form-control"
+                                   value="<?= htmlspecialchars($email) ?>"
+                                   required>
+                        </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" 
+                                   name="password" 
+                                   class="form-control"
+                                   required>
+                        </div>
 
-<?php 
-    // Grab the form data after form is submitted
-    // how to check whether the form is submitted or not 
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" 
+                                   name="confirmPassword" 
+                                   class="form-control"
+                                   required>
+                        </div>
 
-    // Variable to store form data
-    $fullname = "";
-    $user_name = "";
-    $email = "";
-    $userPassword="";
-    $confirmPassword = "";
-    if($_SERVER["REQUEST_METHOD"] == "POST") {
+                        <button type="submit" class="btn btn-primary w-100">
+                            Register
+                        </button>
 
-        // Grab all fields and check for validation
-        $fullname = $_POST["fullname"];
-        $user_name = $_POST["username"];
-        $email = $_POST["email"];
-        $userPassword = $_POST["password"];
-        $confirmPassword = $_POST["confirmPassword"];
+                        <p class="text-center mt-3">
+                            Already have an account? 
+                            <a href="./login.php">Login</a>
+                        </p>
 
-        // echo "Your submitted <br/> $fullname, $username, $email, $password, $confirmPassword";
+                    </form>
 
-        if(empty($fullname) || empty($user_name) || empty($email) || empty($userPassword) || empty($confirmPassword)) {
-            echo "<i>Please fill out all the form fields</i><br/></br>";
-        }
+                </div>
+            </div>
 
-        // Validate password and confirm password
+        </div>
+    </div>
+</div>
 
-       if($userPassword != $confirmPassword) {
-            echo "<em>Password does not match please confirm your password </em><br/>";
-       }
-
-       // If everything is okay let us hash our password to make the password
-       // safe in our database while storinig
-       
-       $hashPassword = password_hash($confirmPassword, PASSWORD_DEFAULT);
-       
-       echo $hashPassword;
-
-       // STEP 3: Import db connection an write a query to register this 
-       // user in database of table users 
-       // import db connnection
-       // db connection is inside config/config_db.php 
-       include('../config/db_config.php');
-
-       // Lets do echo var_dump to check whether the connection variable is imported
-       // or not
-
-        //    echo var_dump($conn);
-
-        // Write a sql query to register the user using values which we get from register form.
-
-       $registerUserSQL = "insert into users(fullname, username, email, password) values(?, ?, ?, ?)";
-
-       // To run his query you must have the columns fullname, username, email, and password
-       // in classicmodels user table
-       // if columns does not exist add 
-
-       // to add use sql alter table command
-       
-       // alter table users add column fullname varchar(255) not null 
-       // alter table users add column username varchar(25) not null unique
-       // alter table users add column email varchar(25) not null unique
-       // alter table users add column password varchar(255) not null
-       
-       $preparedStatement =  $conn->prepare($registerUserSQL);
-
-       // bind form values in SQL prepare statement to populate ?
-       //s: string: first s: fullname, second s: username and so on ....
-       $preparedStatement->bind_param('ssss',$fullname, $user_name, $email, $hashPassword);
-
-       // After binding call execute method to run in dbms from php 
-      $isSuccess =  $preparedStatement->execute();
-
-      if($isSuccess == TRUE) {
-
-        echo "You account has been created  <br/>
-                <a href='./login.php'>Login</a>        
-        ";
-
-      }
-
-
-
-    }
-
-?>
-
-
-
-<form method='POST' action='./register.php'> 
-    <fieldset>
-            <legend>User Registration Form </legend>
-
-    FullName: <input type='text' name='fullname' value="<?php echo $fullname; ?>" /> <br/>
-    username: <input type='text' name='username' value="<?php echo $user_name; ?>"   /> <br/>
-    Email:    <input type='email' name='email' value="<?php echo $email; ?>" /> <br/>
-    password: <input type='password' name='password' value="<?php echo $confirmPassword; ?>" /> <br/>
-    confirm Password: <input type='password' name='confirmPassword' value="<?php echo $confirmPassword; ?>" /> <br/>
-    <input type='submit' value='Register' />
-</fieldset>
-
-</form>
-
-    
 </body>
 </html>
